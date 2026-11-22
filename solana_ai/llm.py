@@ -24,13 +24,13 @@ SWITCH_PROVIDER = (
 def _to_message(msg: Any) -> dict:
     out: dict[str, Any] = {"role": "assistant", "content": msg.content or ""}
     if msg.tool_calls:
-        out["tool-calls"] = [
+        out["tool_calls"] = [
             {
                 "id": tc.id,
                 "type": "function",
                 "function": {
                     "name": tc.function.name,
-                    "arguments":  tc.function.arguements or "{}",
+                    "arguments":  tc.function.arguments or "{}",
                 },
             }
             for tc in msg.tool_calls

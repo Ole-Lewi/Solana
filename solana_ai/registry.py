@@ -17,6 +17,13 @@ class Tool:
     fn: Callable[..., Any]
     risk: Risk
 
+    def validate(self, args: dict) -> str | None:
+        try:
+            inspect.signature(self.fn).bind(**args)
+        except TypeError as err:
+            return f"Invalid arguments for {self.name}: {err}"
+        return None
+
     def schema(self) -> dict[str, Any]:
         return {
             "type": "function",
