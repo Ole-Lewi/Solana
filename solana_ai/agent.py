@@ -19,4 +19,4 @@ class SolanaAgent:
 
         for _ in range(self.max_rounds):
             full = [{"role": "user", "content": SYSTEM_PROMPT}, *messages]
-            reply = self
+            reply = self.
