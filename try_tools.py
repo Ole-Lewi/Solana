@@ -21,7 +21,7 @@ messages = [
         "role": "system", "content": "You are Solana, a concise personal assistant. Use tools when helpful."
     },
     {
-        "role": "user", "content": "What time is it now?"
+        "role": "user", "content": "What is the time?"
     },
 ]
 reply = client.chat(messages, registry.schemas())
