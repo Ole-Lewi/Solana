@@ -14,9 +14,10 @@ SYSTEM_PROMPT = (
 
 
 class SolanaAgent:
-    def __init__(self, llm: LLMClient, tools: ToolRegistry, max_rounds: int = 8):
+    def __init__(self, llm: LLMClient, tools: ToolRegistry, gate: PermissionGate, max_rounds: int = 8):
         self.llm = llm
         self.tools = tools
+        self.gate = gate
         self.max_rounds = max_rounds
 
     def run_turn(self, history: list[dict], user_text: str) -> tuple[str, list[dict]]:
