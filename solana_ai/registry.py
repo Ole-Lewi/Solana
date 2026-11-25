@@ -34,6 +34,13 @@ class Tool:
             },
         }
 
+    def validate(self, args: dict[str, Any]) -> str | None:
+        try:
+            inspect.signature(self.fn).bind(**args)
+        except TypeError as err:
+            return f"Invalid arguments for {self.name}: {err}"
+        return None
+
 def build_parameters(fn: Callable[..., Any]) -> dict[str, Any]:
     hints = get_type_hints(fn)
     properties: dict[str, Any] = {}

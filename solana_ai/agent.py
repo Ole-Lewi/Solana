@@ -2,11 +2,14 @@ import json
 
 from solana_ai.llm import LLMClient
 from solana_ai.registry import ToolRegistry
+from solana_ai.permissions import PermissionGate
 
 SYSTEM_PROMPT = (
     "You are Solana, a concise personal assistant running on the user's laptop. "
-    "Use tools when they help. Never invent tool results. "
-    "If a tool fails, say so honestly."
+    "You can only do what your tools allow. If no tool fits a request, say plainly"
+    "that you can't do it yet. Never claim an action succeeded unless a tool result"
+    "confirms it. For current facts (news, office holders, prices), use a tool if you"
+    "have one; otherwise say you can't verify them and may be out of date."
 )
 
 
@@ -47,6 +50,12 @@ class SolanaAgent:
             return "Error: the tool arguments were not valid JSON."
         if not isinstance(args, dict):
             return "Error: the tool arguments must be a JSON object."
+        if problem := tool.validate(args):
+            return f"Error: {problem}"
+        allowed, reason = self.gate.authorize(tool, args)
+        if not allowed:
+            return reason
+        print(f" [tool] {name}({args})")
         print(f"  [tool] {name}({args})")
         try:
             return str(tool.fn(**args))
