@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,3 +29,13 @@ def load_providers() -> list[ProviderConfig]:
     if not providers:
         raise RuntimeError("No LLM provider configures. Check your .env file.")
     return providers
+
+def allowed_roots() -> list[Path]:
+    raw = os.getenv("SOLANA_ALLOWED_ROOTS")
+    if raw:
+        return [Path(r).expanduser().resolve() for r in raw.split(os.pathsep) if r.strip()]
+    return [Path.home().resolve() / "Documents"]
+
+def notes_dir() -> Path:
+    raw = os.getenv("SOLANA_NOTES_DIR")
+    return Path(raw).expanduser() if raw else Path.home() / "SolanaNotes"
