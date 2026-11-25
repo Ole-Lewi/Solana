@@ -16,6 +16,7 @@ class Tool:
     parameters: dict[str, Any]
     fn: Callable[..., Any]
     risk: Risk
+    untrusted_output: bool = False
 
     def validate(self, args: dict) -> str | None:
         try:
@@ -55,7 +56,7 @@ class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str, Tool] = {}
 
-    def register(self, *, risk: Risk):
+    def register(self, *, risk: Risk, untrusted_output: bool = False):
         def decorator(fn):
             self._tools[fn.__name__] = Tool(
                 name=fn.__name__,
@@ -63,6 +64,7 @@ class ToolRegistry:
                 parameters=build_parameters(fn),
                 fn=fn,
                 risk=risk,
+                untrusted_output=untrusted_output
             )
             return fn
         return decorator
