@@ -54,8 +54,8 @@ def fetch_url(url: str, max_chars: int = 4000) -> str:
                     if response.status_code >= 400:
                         return f"HTTP{response.status_code} from {current}"
                     content_type = response.headers.get("content-type", "")
-                    if "html" not in content_type and "text" not in content_type:
-                        return f"Unsupported content type: {content_type or 'unknown'}"
+                    if not any(kind in content_type for kind in ("html", "text", "xml")):
+                        return f"Unsuported content type: {content_type or 'unknown'}"
                     body=b""
                     for chunk in response.iter_bytes():
                         body +=chunk

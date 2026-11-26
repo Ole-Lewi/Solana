@@ -27,6 +27,9 @@ class PermissionGate:
         shown = json.dumps(args, ensure_ascii=False)
         if len(shown) > 600:
             shown = shown[:600] + "...(truncated)"
-        if self.confirm(f"Solana wants to run {tool.name} with {shown}"):
+        prompt = f"Solana wants to run {tool.name} with {shown}"
+        if self.tainted:
+            prompt += "\n WARNING: outside content was read this turn. Approve only if YOU asked for this."
+        if self.confirm(prompt):
             return True, ""
         return False, "the user denied this action. Do not retry it; tell the user it was not done."
