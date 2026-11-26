@@ -66,6 +66,7 @@ class SolanaAgent:
         print(f"  [tool] {name}({args})")
         try:
             output = str(tool.fn(**args))
+            print(f"[result] {output[:150]!r}")
         except PermissionError as err:
             return f"Blocked: {err}"
         except Exception as err:

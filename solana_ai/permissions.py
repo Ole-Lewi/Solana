@@ -21,7 +21,8 @@ class PermissionGate:
             self.tainted = True
 
     def authorize(self, tool: Tool, args: dict[str, Any]) -> tuple[bool, str]:
-        if tool.risk is Risk.AUTO:
+        needs_approval = tool.risk is not Risk.AUTO or (tool.confirm_if_tainted and self.tainted)
+        if not needs_approval:
             return True, ""
         shown = json.dumps(args, ensure_ascii=False)
         if len(shown) > 600:
