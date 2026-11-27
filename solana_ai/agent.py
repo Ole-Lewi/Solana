@@ -1,10 +1,13 @@
 import json
+import logging
 
 from solana_ai.llm import LLMClient
 from solana_ai.registry import ToolRegistry
 from solana_ai.permissions import PermissionGate, wrap_untrusted
 
 MAX_TOOL_OUTPUT_CHARS = 6000
+
+log = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
     "You are Solana, a concise personal assistant running on the user's laptop. "
@@ -20,8 +23,20 @@ SYSTEM_PROMPT = (
     "For current events use search_news; for other lookups use search_web. Search"
     "results only give snippets, so fetch_url a result's link when you need detail."
     "Cite the source name and link for each claim, and mention dates when you have them."
+    "Only save notes or take other actions with side effects when the user explicitly"
+    "asks you to; never do them on your own initiative. "
+    "if you don't know something about the user, ask them. Don't search their files"
+    "or the web for personal details unless they ask you to. "
 )
-
+#Keeps the last 30 messages
+def trim_history(messages: list[dict], keep: int = 30) -> list[dict]:
+    if len(messages) <= keep:
+        return messages
+    tail = messages[-keep:]
+    for i, m in enumerate(tail):
+        if m["role"] == "user":
+            return tail[i:]
+    return tail
 
 class SolanaAgent:
     def __init__(self, llm: LLMClient, tools: ToolRegistry, gate: PermissionGate, max_rounds: int = 8):
@@ -32,7 +47,7 @@ class SolanaAgent:
 
     def run_turn(self, history: list[dict], user_text: str) -> tuple[str, list[dict]]:
         self.gate.reset_turn()
-        messages = [*history, {"role": "user", "content": user_text}]
+        messages = [*trim_history(history), {"role": "user", "content": user_text}]
 
         for _ in range(self.max_rounds):
             full = [{"role": "system", "content": SYSTEM_PROMPT}, *messages]
@@ -67,16 +82,17 @@ class SolanaAgent:
         allowed, reason = self.gate.authorize(tool, args)
         if not allowed:
             return reason
-        print(f" [tool] {name}({args})")
+        print(f" [tool] {name}")
+        log.info("args=%s", args)
         try:
             output = str(tool.fn(**args))
-            print(f"[result] {output[:150]!r}")
         except PermissionError as err:
             return f"Blocked: {err}"
         except Exception as err:
             return f"Tool error: {type(err).__name__}: {err}"
 
         self.gate.record_result(tool)
+        log.info("result=%r", output[:150])
         output = output[:MAX_TOOL_OUTPUT_CHARS]
         if tool.untrusted_output:
             return wrap_untrusted(output, name)

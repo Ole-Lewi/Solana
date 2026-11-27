@@ -46,13 +46,13 @@ class LLMClient:
 
     def chat(self, messages: list[dict], tools: list[dict] | None = None) -> dict:
         last_error = None
-        for provider, client in self._clients:
+        for provider, _client in self._clients:
             kwargs: dict[str, Any] = {"model": provider.model, "messages": messages}
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
             try:
-                response = client.chat.completions.create(**kwargs)
+                response = _client.chat.completions.create(**kwargs)
                 return _to_message(response.choices[0].message)
             except SWITCH_PROVIDER as err:
                 last_error = err
